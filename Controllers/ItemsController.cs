@@ -1,19 +1,61 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MVC_Application.Data;
 using MVC_Application.Models;
 
 namespace MVC_Application.Controllers
 {
     public class ItemsController : Controller
     {
-        public IActionResult Overview()
+        private readonly Context _context;
+        public ItemsController(Context context)
         {
-            var item = new Item() { Name = "Recliner" };
+            _context = context;
+        }
+        public async Task<IActionResult> Index()
+        {
+            var items = await _context.Items.ToListAsync();
+            return View(items);
+        }
+        public IActionResult Create()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Create([Bind("Id,Name,Price")] Item item)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Items.Add(item);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
             return View(item);
         }
-
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            return Content("Editing item with id " + id);
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            return View(item);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Price")] Item item)
+        {
+            if (id != item.Id)
+            {
+                return NotFound();
+            }
+            if (ModelState.IsValid)
+            {
+                _context.Items.Update(item);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(item);
         }
     }
 }
+
