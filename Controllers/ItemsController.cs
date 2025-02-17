@@ -56,6 +56,28 @@ namespace MVC_Application.Controllers
             }
             return View(item);
         }
+        public async Task<IActionResult> Delete(int id)
+        {
+            
+                var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id);
+                if (item == null)
+                {
+                    return NotFound();
+                }
+                return View(item);
+        }
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            _context.Items.Remove(item);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
 
